@@ -24,10 +24,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import com.github.emailtohl.frame.util.Serializing;
 import com.github.emailtohl.web.wechat.config.WebSocketConfigurator;
 import com.google.gson.Gson;
-
-import net.imwork.emailtohl.frame.util.Serializing;
 /**
  * 微信摇一摇功能的服务器，使用websocket技术
  * @author HeLei
