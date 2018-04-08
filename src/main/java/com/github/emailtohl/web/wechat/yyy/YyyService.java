@@ -1,6 +1,7 @@
 package com.github.emailtohl.web.wechat.yyy;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -24,9 +25,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-import com.github.emailtohl.frame.util.Serializing;
 import com.github.emailtohl.web.wechat.config.WebSocketConfigurator;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 /**
  * 微信摇一摇功能的服务器，使用websocket技术
  * @author HeLei
@@ -44,7 +45,7 @@ public class YyyService {
 	private Session session;
 	private HttpSession httpSession;
 	private Gson gson;
-	private Serializing serializing = new Serializing();
+	private Type mapType = new TypeToken<Map<String, String>>() {}.getType();
 
 	@OnOpen
 	public void onOpen(Session session, @PathParam("endpoint") String endpoint) {
@@ -72,11 +73,10 @@ public class YyyService {
 		logger.info(this.gson);
 	}
 
-	@SuppressWarnings("unchecked")
 	@OnMessage
 	public void onMessage(Session session, String message, @PathParam("endpoint") String endpoint) throws IOException {
 		if ("user".equals(endpoint)) {
-			Map<String, String> msg = (Map<String, String>) serializing.fromJson(message);
+			Map<String, String> msg = gson.fromJson(message, mapType);
 			String action = msg.get("action");
 			if ("register".equals(action)) {
 				SNSUserInfo user = new SNSUserInfo();
@@ -97,7 +97,7 @@ public class YyyService {
 				SNSUserInfo user = userMap.get(session);
 				user.increase();
 				user.action = "running";
-				String notifymsg = serializing.toJson(user);// 将跑一步的信息转成json
+				String notifymsg = gson.toJson(user);// 将跑一步的信息转成json
 				for (Session monitor : monitorSet) {// 发送到各个监视器上
 					try {
 						monitor.getBasicRemote().sendText(notifymsg);
@@ -115,7 +115,7 @@ public class YyyService {
 					public void run() {
 						running = false;
 						SNSUserInfo[] users = calculateRank();
-						String rankmsg = serializing.toJson(users);
+						String rankmsg = gson.toJson(users);
 						String notifymsg = "{\"action\":\"ending\",\"rank\":" + rankmsg + "}";
 						for (Session server : monitorSet) {// 发送到各个监视器上
 							try {
@@ -146,7 +146,7 @@ public class YyyService {
 		} else if ("user".equals(endpoint)) {
 			SNSUserInfo user = userMap.get(session);
 			user.action = "exit";
-			String notifymsg = serializing.toJson(user);
+			String notifymsg = gson.toJson(user);
 			for (Session monitor : monitorSet) {// 告诉各个监视器，该用户已离开
 				try {
 					monitor.getBasicRemote().sendText(notifymsg);
