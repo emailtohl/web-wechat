@@ -31,20 +31,13 @@ public class TextService implements WechatService {
       result.setContent("没有请求消息");
     } else {
       switch (content) {
-        case "1":
-          result.setContent("\r\n 你输入的是1， hello world");
-          break;
-        case "2":
-          result.setContent("\r\n 你输入的是2， 我的名字叫 foo");
-          break;
-        case "3":
-          result.setContent(Constant.REDIRECT_URI_GET_CODE + env.getProperty("appID")
-              + "&redirect_uri=" + env.getProperty("redirect_uri")
-              + "&response_type=code&scope=" + env.getProperty("scope")
-              + "&state=STATE#wechat_redirect");
-          break;
-        default:
-          result.setContent("\r\n 不识别标识码");
+        case "1" -> result.setContent("\r\n 你输入的是1， hello world");
+        case "2" -> result.setContent("\r\n 你输入的是2， 我的名字叫 foo");
+        case "3" -> result.setContent(Constant.REDIRECT_URI_GET_CODE + env.getProperty("appID")
+            + "&redirect_uri=" + env.getProperty("redirect_uri")
+            + "&response_type=code&scope=" + env.getProperty("scope")
+            + "&state=STATE#wechat_redirect");
+        default -> result.setContent("\r\n 不识别标识码");
       }
     }
     return result;
