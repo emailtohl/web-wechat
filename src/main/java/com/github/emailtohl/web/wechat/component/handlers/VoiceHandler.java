@@ -3,7 +3,6 @@ package com.github.emailtohl.web.wechat.component.handlers;
 import com.github.emailtohl.web.wechat.component.WechatHandler;
 import com.github.emailtohl.web.wechat.component.WechatRequest;
 import com.github.emailtohl.web.wechat.component.WechatResponse;
-import com.github.emailtohl.web.wechat.component.models.TextRequest;
 import com.github.emailtohl.web.wechat.component.models.VoiceRequest;
 import com.github.emailtohl.web.wechat.component.models.VoiceResponse;
 import com.github.emailtohl.web.wechat.config.Constant;
@@ -22,6 +21,7 @@ class VoiceHandler extends WechatHandler {
       return next.handle(wechatRequest);
     }
     VoiceResponse resp = new VoiceResponse(req, Constant.VOICE);
+    // TODO
     return resp;
   }
 }
