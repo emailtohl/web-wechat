@@ -1,11 +1,12 @@
 package com.github.emailtohl.web.wechat.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.emailtohl.web.wechat.domain.auth.AccessToken;
 import com.github.emailtohl.web.wechat.domain.menu.Menu;
 import com.github.emailtohl.web.wechat.service.TokenService;
-import com.google.gson.Gson;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -22,8 +23,8 @@ import static com.github.emailtohl.web.wechat.config.Constant.*;
  */
 @Component
 public class MenuUtil {
-  private static final Logger log = LogManager.getLogger();
-  private final Gson gson = new Gson();
+  private final ObjectMapper om = new ObjectMapper();
+  private final Logger logger = LoggerFactory.getLogger(OauthUtil.class);
   @Autowired
   HttpsClient httpsClient;
   @Autowired
@@ -40,16 +41,16 @@ public class MenuUtil {
   public boolean createMenu(Menu menu) {
     boolean flag = false;
     String url = MENU_CREATE_URL.replace("ACCESS_TOKEN", accessTokenService.getAccessToken());
-    String menuJson = gson.toJson(menu);
+    String menuJson = toJson(menu);
     String result = httpsClient.post(url, menuJson);
-    AccessToken at = gson.fromJson(result, AccessToken.class);
+    AccessToken at = fromJson(result, AccessToken.class);
     if (null != at) {
       Integer errorCode = at.getErrcode();
       String errorMsg = at.getErrmsg();
       if (null == errorCode || 0 == errorCode) {
         flag = true;
       } else {
-        log.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+        logger.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
       }
     }
     return flag;
@@ -58,7 +59,7 @@ public class MenuUtil {
   public boolean createMenu2(Menu menu) {
     boolean flag = false;
     String url = MENU_CREATE_URL.replace("ACCESS_TOKEN", accessTokenService.getAccessToken());
-    String menuJson = gson.toJson(menu);
+    String menuJson = toJson(menu);
     AccessToken at = restTemplate.postForObject(url, menuJson, AccessToken.class);
     if (null != at) {
       Integer errorCode = at.getErrcode();
@@ -66,10 +67,28 @@ public class MenuUtil {
       if (null == errorCode || 0 == errorCode) {
         flag = true;
       } else {
-        log.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+        logger.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
       }
     }
     return flag;
+  }
+
+  private <T> T fromJson(String json, Class<T> clz) {
+    try {
+      return om.readValue(json, clz);
+    } catch (JsonProcessingException e) {
+      logger.error(e.getMessage(), e);
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private <T> String toJson(T o) {
+    try {
+      return om.writeValueAsString(o);
+    } catch (JsonProcessingException e) {
+      logger.error(e.getMessage(), e);
+      throw new IllegalStateException(e);
+    }
   }
 
   public boolean createMenu(String menuJson) {
@@ -82,7 +101,7 @@ public class MenuUtil {
       if (null == errorCode || 0 == errorCode) {
         flag = true;
       } else {
-        log.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+        logger.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
       }
     }
     return flag;
@@ -123,7 +142,7 @@ public class MenuUtil {
     String errorMsg = r.getBody().getErrmsg();
     if (errorCode != 0) {
       flag = false;
-      log.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
+      logger.error("创建菜单失败 errcode:{} errmsg:{}", errorCode, errorMsg);
     }
     return flag;
   }

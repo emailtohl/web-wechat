@@ -1,10 +1,13 @@
 package com.github.emailtohl.web.wechat.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.emailtohl.web.wechat.domain.auth.SNSUserInfo;
 import com.github.emailtohl.web.wechat.domain.auth.WeixinOauth2Token;
 import com.github.emailtohl.web.wechat.domain.auth.WeixinUserInfo;
 import com.github.emailtohl.web.wechat.service.TokenService;
-import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -18,7 +21,8 @@ import static com.github.emailtohl.web.wechat.config.Constant.*;
  */
 @Component
 public class OauthUtil {
-  private final Gson gson = new Gson();
+  private final ObjectMapper om = new ObjectMapper();
+  private final Logger logger = LoggerFactory.getLogger(OauthUtil.class);
   @Autowired
   HttpsClient httpsClient;
   @Autowired
@@ -41,7 +45,7 @@ public class OauthUtil {
         .replace("CODE", code);
     // 获取网页授权凭证
     String json = httpsClient.get(requestUrl);
-    return gson.fromJson(json, WeixinOauth2Token.class);
+    return fromJson(json, WeixinOauth2Token.class);
   }
 
   /**
@@ -56,7 +60,7 @@ public class OauthUtil {
         .replace("REFRESH_TOKEN", refreshToken);
     // 刷新网页授权凭证
     String json = httpsClient.get(requestUrl);
-    return gson.fromJson(json, WeixinOauth2Token.class);
+    return fromJson(json, WeixinOauth2Token.class);
   }
 
   /**
@@ -72,7 +76,7 @@ public class OauthUtil {
         .replace("OPENID", openId);
     // 通过网页授权获取用户信息
     String json = httpsClient.get(requestUrl);
-    return gson.fromJson(json, SNSUserInfo.class);
+    return fromJson(json, SNSUserInfo.class);
   }
 
   /**
@@ -87,7 +91,15 @@ public class OauthUtil {
         .replace("OPENID", openId);
     // 获取用户信息
     String json = httpsClient.get(requestUrl);
-    return gson.fromJson(json, WeixinUserInfo.class);
+    return fromJson(json, WeixinUserInfo.class);
   }
 
+  private <T> T fromJson(String json, Class<T> clz) {
+    try {
+      return om.readValue(json, clz);
+    } catch (JsonProcessingException e) {
+      logger.error(e.getMessage(), e);
+      throw new IllegalStateException(e);
+    }
+  }
 }
